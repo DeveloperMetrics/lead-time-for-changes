@@ -19,10 +19,6 @@ description: 'A GitHub Action to roughly calculate DORA deployment frequency'
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-        persist-credentials: false
     - name: Run DORA lead time for changes
       shell: pwsh
       run: |
