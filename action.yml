@@ -22,5 +22,5 @@ runs:
     - name: Run DORA lead time for changes
       shell: pwsh
       run: |
-         leadtimeforchanges.ps1 #-ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} 
+         ${{ github.action_path }}/leadtimeforchanges.ps1 #-ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} 
         
