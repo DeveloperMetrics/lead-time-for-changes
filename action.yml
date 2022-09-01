@@ -23,7 +23,7 @@ runs:
       with:
         fetch-depth: 0
         persist-credentials: false
-        token: ${{ secrets.GH_API_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Run DORA lead time for changes
       shell: pwsh
       run: |
