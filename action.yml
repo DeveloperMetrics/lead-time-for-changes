@@ -20,6 +20,10 @@ runs:
   using: "composite"
   steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        persist-credentials: false
+        token: ${{ secrets.GH_API_TOKEN }}
     - name: Run DORA lead time for changes
       shell: pwsh
       run: |
