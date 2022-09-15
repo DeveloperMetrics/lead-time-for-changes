@@ -64,7 +64,7 @@ function Main ([string] $ownerRepo,
         Write-Output "Repo is not found or you do not have access"
         break
     }  
-    
+
     Foreach ($pr in $prsResponse){
                 $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
                 Write-Output $url2
@@ -79,6 +79,19 @@ function Main ([string] $ownerRepo,
                 }
                 break
     }
+
+    #==========================================
+    #Show current rate limit
+    $uri3 = "https://api.github.com/rate_limit"
+    if (!$authHeader)
+    {
+        $rateLimitResponse = Invoke-RestMethod -Uri $uri3 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
+    }
+    else
+    {
+        $rateLimitResponse = Invoke-RestMethod -Uri $uri3 -ContentType application/json -Method Get -Headers @{Authorization=($authHeader["Authorization"])} -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
+    }    
+    Write-Output "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
 
     Write-Output "PR time duration $prTimeDuration"
 }
