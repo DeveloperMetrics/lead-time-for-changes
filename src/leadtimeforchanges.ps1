@@ -64,24 +64,27 @@ function Main ([string] $ownerRepo,
         Write-Output "Repo is not found or you do not have access"
         break
     }  
-    $prsResponse
 
     Foreach ($pr in $prsResponse){
         $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
-        Write-Output $url2
         $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -ErrorAction Stop
         if ($prCommitsresponse.Length -ge 1)
         {
-            $startDate = $prCommitsresponse[0].committer.date
+            $startDate = $prCommitsresponse[0].commit.committer.date
         }
-        if ($pr.Status -eq "closed" -and $pr.merged_at -ne $null)
+        #$pr.merged_at -as [DateTime]
+        if ($pr.state -eq "closed" -and $pr.merged_at -ne $null)
         {
             $prTimeDuration = New-TimeSpan –Start $startDate –End $pr.merged_at
         }
-        $prCommitsresponse.Length
-        $startDate
-        $prTimeDuration
-        break
+        Write-Output "$($pr.number) : $($pr.state)" 
+        Write-Output "merged at $($pr.merged_at), $($pr.merged_at -eq $null)"
+        Write-Output "Start date: $startDate"
+        Write-Output "Time duration: $($prTimeDuration.TotalHours)"
+        if ($pr.number -eq 610)
+        {
+            break
+        }
     }
 
     #==========================================
