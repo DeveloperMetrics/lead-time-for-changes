@@ -4,6 +4,7 @@ Param(
     [string] $workflows,
     [string] $branch,
     [Int32] $numberOfDays,
+    [string] $commitCountingMethod = "last",
     [string] $patToken = "",
     [string] $actionsToken = ""#,
     #[string] $gitHubAppToken 
@@ -14,6 +15,7 @@ function Main ([string] $ownerRepo,
     [string] $workflows,
     [string] $branch,
     [Int32] $numberOfDays,
+    [string] $commitCountingMethod,
     [string] $patToken,
     [string] $actionsToken#,
     #[string] $gitHubAppToken 
@@ -31,6 +33,11 @@ function Main ([string] $ownerRepo,
     Write-Output "Branch: $branch"
     $numberOfDays = $numberOfDays        
     Write-Output "Number of days: $numberOfDays"
+    if ($commitCountingMethod -eq "")
+    {
+        $commitCountingMethod = "last"
+    }
+    Write-Output "Commit counting method '$commitCountingMethod' being used"
 
     #==========================================
     # Get authorization headers
@@ -70,7 +77,18 @@ function Main ([string] $ownerRepo,
         $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -ErrorAction Stop
         if ($prCommitsresponse.Length -ge 1)
         {
-            $startDate = $prCommitsresponse[0].commit.committer.date
+            if ($commitCountingMethod -eq "last")
+            {
+                $startDate = $prCommitsresponse[$prCommitsresponse.Length-1].commit.committer.date
+            }
+            elseif ($commitCountingMethod -eq "first")
+            {
+                $startDate = $prCommitsresponse[0].commit.committer.date
+            }
+            else
+            {
+                Write-Output "Commit counting method '$commitCountingMethod' is unknown. Expecting 'first' or 'last'"
+            }
         }
         #$pr.merged_at -as [DateTime]
         if ($pr.state -eq "closed" -and $pr.merged_at -ne $null)
@@ -131,4 +149,4 @@ function GetAuthHeader ([string] $patToken, [string] $actionsToken)
     return $authHeader
 }
 
-main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -patToken $patToken -actionsToken $actionsToken
+main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod -patToken $patToken -actionsToken $actionsToken
