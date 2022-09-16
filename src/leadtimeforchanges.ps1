@@ -77,10 +77,11 @@ function Main ([string] $ownerRepo,
         {
             $prTimeDuration = New-TimeSpan –Start $startDate –End $pr.merged_at
         }
-        Write-Output "$($pr.number) : $($pr.state)" 
-        Write-Output "merged at $($pr.merged_at), $($pr.merged_at -eq $null)"
-        Write-Output "Start date: $startDate"
-        Write-Output "Time duration: $($prTimeDuration.TotalHours)"
+        else
+        {
+            $prTimeDuration = $null
+        }
+        Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
         if ($pr.number -eq 610)
         {
             break
