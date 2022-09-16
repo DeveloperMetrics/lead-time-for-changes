@@ -53,21 +53,10 @@ function Main ([string] $ownerRepo,
     if (!$authHeader)
     {
         #No authentication
-        Write-Output "No authentication"
         $prsResponse = Invoke-RestMethod -Uri $uri -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
     }
     else
     {
-        #there is authentication
-        if (![string]::IsNullOrEmpty($patToken))
-        {
-            Write-Output "Authentication detected: PAT TOKEN"  
-        }      
-        elseif (![string]::IsNullOrEmpty($actionsToken))
-        {
-            Write-Output "Authentication detected: GITHUB TOKEN"  
-        }
-
         $prsResponse = Invoke-RestMethod -Uri $uri -ContentType application/json -Method Get -Headers @{Authorization=($authHeader["Authorization"])} -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus" 
     }
     if ($HTTPStatus -eq "404")
@@ -130,22 +119,34 @@ function Main ([string] $ownerRepo,
 #Generate the authorization header for the PowerShell call to the GitHub API
 #warning: PowerShell has really wacky return semantics - all output is captured, and returned
 #reference: https://stackoverflow.com/questions/10286164/function-return-value-in-powershell
-function GetAuthHeader ([string] $patToken, [string] $actionsToken) 
+function GetAuthHeader ([string] $patToken, [string] $actionsToken, [string] $appId, [string] $appInstallationId, [string] $appPrivateKey) 
 {
     #Clean the string - without this the PAT TOKEN doesn't process
     $patToken = $patToken.Trim()
-
+    #Write-Host  $appId
+    #Write-Host "pattoken: $patToken"
+    #Write-Host "app id is something: $(![string]::IsNullOrEmpty($appId))"
+    #Write-Host "patToken is something: $(![string]::IsNullOrEmpty($patToken))"
     if (![string]::IsNullOrEmpty($patToken))
     {
+        Write-Host "Authentication detected: PAT TOKEN"
         $base64AuthInfo = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes(":$patToken"))
         $authHeader = @{Authorization=("Basic {0}" -f $base64AuthInfo)}
     }
     elseif (![string]::IsNullOrEmpty($actionsToken))
     {
+        Write-Host "Authentication detected: GITHUB TOKEN"  
         $authHeader = @{Authorization=("Bearer {0}" -f $base64AuthInfo)}
     }
+    elseif (![string]::IsNullOrEmpty($appId)) # GitHup App auth
+    {
+        Write-Host "Authentication detected: GITHUB APP TOKEN"  
+        $token = Get-JwtToken $appId $appInstallationId $appPrivateKey        
+        $authHeader = @{Authorization=("token {0}" -f $token)}
+    }    
     else
     {
+        Write-Host "No authentication detected" 
         $base64AuthInfo = $null
         $authHeader = $null
     }
@@ -153,4 +154,63 @@ function GetAuthHeader ([string] $patToken, [string] $actionsToken)
     return $authHeader
 }
 
-main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod -patToken $patToken -actionsToken $actionsToken
+function ConvertTo-Base64UrlString(
+    [Parameter(Mandatory=$true,ValueFromPipeline=$true)]$in) 
+{
+    if ($in -is [string]) {
+        return [Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes($in)) -replace '\+','-' -replace '/','_' -replace '='
+    }
+    elseif ($in -is [byte[]]) {
+        return [Convert]::ToBase64String($in) -replace '\+','-' -replace '/','_' -replace '='
+    }
+    else {
+        throw "GitHub App authenication error: ConvertTo-Base64UrlString requires string or byte array input, received $($in.GetType())"
+    }
+}
+
+function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $appPrivateKey)
+{
+    # Write-Host "appId: $appId"
+    $now = (Get-Date).ToUniversalTime()
+    $createDate = [Math]::Floor([decimal](Get-Date($now) -UFormat "%s"))
+    $expiryDate = [Math]::Floor([decimal](Get-Date($now.AddMinutes(4)) -UFormat "%s"))
+    $rawclaims = [Ordered]@{
+        iat = [int]$createDate
+        exp = [int]$expiryDate
+        iss = $appId
+    } | ConvertTo-Json
+    # Write-Host "expiryDate: $expiryDate"
+    # Write-Host "rawclaims: $rawclaims"
+
+    $Header = [Ordered]@{
+        alg = "RS256"
+        typ = "JWT"
+    } | ConvertTo-Json
+    # Write-Host "Header: $Header"
+    $base64Header = ConvertTo-Base64UrlString $Header
+    # Write-Host "base64Header: $base64Header"
+    $base64Payload = ConvertTo-Base64UrlString $rawclaims
+    # Write-Host "base64Payload: $base64Payload"
+
+    $jwt = $base64Header + '.' + $base64Payload
+    $toSign = [System.Text.Encoding]::UTF8.GetBytes($jwt)
+
+    $rsa = [System.Security.Cryptography.RSA]::Create();    
+    # https://stackoverflow.com/a/70132607 lead to the right import
+    $rsa.ImportRSAPrivateKey([System.Convert]::FromBase64String($appPrivateKey), [ref] $null);
+
+    try { $sig = ConvertTo-Base64UrlString $rsa.SignData($toSign,[Security.Cryptography.HashAlgorithmName]::SHA256,[Security.Cryptography.RSASignaturePadding]::Pkcs1) }
+    catch { throw New-Object System.Exception -ArgumentList ("GitHub App authenication error: Signing with SHA256 and Pkcs1 padding failed using private key $($rsa): $_", $_.Exception) }
+    $jwt = $jwt + '.' + $sig
+    # send headers
+    $uri = "https://api.github.com/app/installations/$appInstallationId/access_tokens"
+    $jwtHeader = @{
+        Accept = "application/vnd.github+json"
+        Authorization = "Bearer $jwt"
+    }
+    $tokenResponse = Invoke-RestMethod -Uri $uri -Headers $jwtHeader -Method Post -ErrorAction Stop
+    # Write-Host $tokenResponse.token
+    return $tokenResponse.token
+}
+
+main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod  -patToken $patToken -actionsToken $actionsToken -appId $appId -appInstallationId $appInstallationId -appPrivateKey $appPrivateKey
