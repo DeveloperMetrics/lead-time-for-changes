@@ -15,7 +15,12 @@ inputs:
   number-of-days: # optional, defaults to 30
     description: number of days to scan
     required: true
-    default: 30  pat-token: # optional, defaults to an empty string ("")
+    default: 30
+  commit-counting-method: #optional, defaults to 'last'
+    description: accepts two values, 'last' - to start timing from the last commit of a PR, and 'first' to start timing from the first commit of a PR
+    required: true
+    default: 'last'
+  pat-token: # optional, defaults to an empty string ("")
     description: GitHub PAT Token
     default: ""
   actions-token: # optional, defaults to an empty string ("")
@@ -36,4 +41,4 @@ runs:
     - name: Run DORA lead time for changes
       shell: pwsh
       run: |
-         ${{ github.action_path }}/src/leadtimeforchanges.ps1 -ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} -patToken "${{ inputs.pat-token }}" -actionsToken "${{ inputs.actions-token }}" -appId "${{ inputs.app-id }}" -appInstallationId "${{ inputs.app-install-id }}" -appPrivateKey "${{ inputs.app-private-key }}"             
+         ${{ github.action_path }}/src/leadtimeforchanges.ps1 -ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} -commitCountingMethod ${{ inputs.commit-counting-method }} -patToken "${{ inputs.pat-token }}" -actionsToken "${{ inputs.actions-token }}" -appId "${{ inputs.app-id }}" -appInstallationId "${{ inputs.app-install-id }}" -appPrivateKey "${{ inputs.app-private-key }}"             

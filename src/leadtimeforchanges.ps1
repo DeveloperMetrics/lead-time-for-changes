@@ -6,8 +6,10 @@ Param(
     [Int32] $numberOfDays,
     [string] $commitCountingMethod = "last",
     [string] $patToken = "",
-    [string] $actionsToken = ""#,
-    #[string] $gitHubAppToken 
+    [string] $actionsToken = "",
+    [string] $appId = "",
+    [string] $appInstallationId = "",
+    [string] $appPrivateKey = ""
 )
 
 #The main function
@@ -16,9 +18,11 @@ function Main ([string] $ownerRepo,
     [string] $branch,
     [Int32] $numberOfDays,
     [string] $commitCountingMethod,
-    [string] $patToken,
-    [string] $actionsToken#,
-    #[string] $gitHubAppToken 
+    [string] $patToken = "",
+    [string] $actionsToken = "",
+    [string] $appId = "",
+    [string] $appInstallationId = "",
+    [string] $appPrivateKey = "")
     )
 {
 
