@@ -23,7 +23,6 @@ function Main ([string] $ownerRepo,
     [string] $appId = "",
     [string] $appInstallationId = "",
     [string] $appPrivateKey = "")
-    )
 {
 
     #==========================================
