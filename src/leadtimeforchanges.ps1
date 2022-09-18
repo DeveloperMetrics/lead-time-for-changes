@@ -160,14 +160,16 @@ function Main ([string] $ownerRepo,
                 $workflowCounter++       
                 #calculate the workflow duration            
                 $workflowDuration = New-TimeSpan –Start $run.created_at –End $run.updated_at
-                $totalPRHours += $workflowDuration.TotalHours    
+                $totalworkflowHours += $workflowDuration.TotalHours    
             }
         }
     }
 
     #==========================================
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
-    $leadTimeForChangesInHours  = ($totalPRHours / $prCounter) + ($totalPRHours / $workflowCounter)
+    Write-Output "PR average time duration $($totalPRHours / $prCounter)"
+    Write-Output "Workflow average time duration $($totalworkflowHours / $workflowCounter)"
+    $leadTimeForChangesInHours  = ($totalPRHours / $prCounter) + ($totalworkflowHours / $workflowCounter)
 
     #==========================================
     #Show current rate limit
@@ -239,7 +241,6 @@ function Main ([string] $ownerRepo,
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 365,2)
         $displayUnit = "years"
     }
-    Write-Output "PR average time duration $leadTimeForChangesInHours"
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
     {
         Write-Output "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
