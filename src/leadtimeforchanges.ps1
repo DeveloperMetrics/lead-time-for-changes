@@ -178,7 +178,7 @@ function Main ([string] $ownerRepo,
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
     Write-Output "PR average time duration $($totalPRHours / $prCounter)"
     Write-Output "Workflow average time duration $($totalworkflowHours / $workflowCounter)"
-    $leadTimeForChangesInHours  = ($totalPRHours / $prCounter) + ($totalworkflowHours / $workflowCounter)
+    $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalworkflowHours / $workflowCounter)
 
     #==========================================
     #Show current rate limit
@@ -215,7 +215,7 @@ function Main ([string] $ownerRepo,
     {
         $rating = "High"
     }
-    elseif (leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
+    elseif ($leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
     {
         $rating = "Medium"
     }
