@@ -92,9 +92,10 @@ function Main ([string] $ownerRepo,
         
             $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
             $totalHours += $prTimeDuration.TotalHours
-            Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
+            #Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
         }
     }
+    $leadTimeForChangesInHours  = $totalHours / $prCounter
 
     #==========================================
     #Show current rate limit
@@ -109,7 +110,72 @@ function Main ([string] $ownerRepo,
     }    
     Write-Output "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
 
-    Write-Output "PR average time duration $($totalHours / $prCounter)"
+    #==========================================
+    #output result
+    $dailyDeployment = 1
+    $weeklyDeployment = 1 / 7
+    $monthlyDeployment = 1 / 30
+    $everySixMonthsDeployment = 1 / (6 * 30) #//Every 6 months
+    $yearlyDeployment = 1 / 365
+
+    #Calculate rating 
+    $rating = ""
+    if ($leadTimeForChangesInHours -le 0)
+    {
+        $rating = "None"
+    }
+    elseif ($leadTimeForChangesInHours -ge $dailyDeployment)
+    {
+        $rating = "Elite"
+    }
+    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
+    {
+        $rating = "High"
+    }
+    elseif (leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
+    {
+        $rating = "Medium"
+    }
+    elseif ($leadTimeForChangesInHours -le $everySixMonthsDeployment)
+    {
+        $rating = "Low"
+    }
+
+    #Calculate metric and unit
+    if ($leadTimeForChangesInHours -gt $dailyDeployment) 
+    {
+        $displayMetric = [math]::Round($leadTimeForChangesInHours,2)
+        $displayUnit = "hours"
+    }
+    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
+    {
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
+        $displayUnit = "days"
+    }
+    elseif ($leadTimeForChangesInHours -lt $weeklyDeployment -and $leadTimeForChangesInHours -ge $monthlyDeployment)
+    {
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24,2)
+        $displayUnit = "days"
+    }
+    elseif ($leadTimeForChangesInHours -lt $monthlyDeployment -and $leadTimeForChangesInHours -gt $yearlyDeployment)
+    {
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30,2)
+        $displayUnit = "months"
+    }
+    elseif ($leadTimeForChangesInHours -le $yearlyDeployment)
+    {
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 365,2)
+        $displayUnit = "years"
+    }
+    Write-Output "PR average time duration $leadTimeForChangesInHours"
+    if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
+    {
+        Write-Output "Lead time for changes over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
+    }
+    else
+    {
+        Write-Output "Lead time for changes: no data to display for this workflow and time period"
+    }
 }
 
 
