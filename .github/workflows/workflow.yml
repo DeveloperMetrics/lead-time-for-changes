@@ -28,18 +28,18 @@ jobs:
           echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
 
       - name: Test this repo
-        uses: samsmithnz/lead-time-for-changes@main
+        uses: samsmithnz/lead-time-for-changes@AddingLTFCScript
         with:
           workflows: 'CI'
       - name: Test elite repo with PAT Token, using last commit method (no dev time)
-        uses: samsmithnz/deployment-frequency@main
+        uses: samsmithnz/lead-time-for-changes@AddingLTFCScript
         with:
           workflows: 'Feature Flags CI/CD'
           owner-repo: 'samsmithnz/SamsFeatureFlags'
           commit-counting-method: 'last'
           pat-token: "${{ secrets.PATTOKEN }}"
       - name: Test elite repo with PAT Token, using first commit method (including dev time)
-        uses: samsmithnz/deployment-frequency@main
+        uses: samsmithnz/lead-time-for-changes@AddingLTFCScript
         with:
           workflows: 'Feature Flags CI/CD'
           owner-repo: 'samsmithnz/SamsFeatureFlags'
