@@ -1,1 +1,1 @@
-src/leadtimeforchanges.ps1 -ownerRepo 'samsmithnz/SamsFeatureFlags' -workflows 'Feature Flags CI/CD' -branch 'main' -numberOfDays 30 -commitCountingMethod 'last' -patToken $env:PATTOKEN
+next-version: 0.9.0
