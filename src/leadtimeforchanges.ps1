@@ -166,6 +166,15 @@ function Main ([string] $ownerRepo,
     }
 
     #==========================================
+    #Prevent divide by zero errors
+    if ($prCounter -eq 0)
+    {   
+        $prCounter = 1
+    }
+    if ($workflowCounter -eq 0)
+    {
+        $workflowCounter = 1
+    }
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
     Write-Output "PR average time duration $($totalPRHours / $prCounter)"
     Write-Output "Workflow average time duration $($totalworkflowHours / $workflowCounter)"
