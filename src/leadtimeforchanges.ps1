@@ -65,36 +65,30 @@ function Main ([string] $ownerRepo,
     }  
 
     Foreach ($pr in $prsResponse){
-        $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
-        $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -ErrorAction Stop
-        if ($prCommitsresponse.Length -ge 1)
+
+        $mergedAt = $pr.merged_at
+        if ($pr.state -eq "closed" -and $mergedAt -ne $null -and $pr.merged_at -gt (Get-Date).AddDays(-$numberOfDays))
         {
-            if ($commitCountingMethod -eq "last")
+            $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
+            $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -ErrorAction Stop
+            if ($prCommitsresponse.Length -ge 1)
             {
-                $startDate = $prCommitsresponse[$prCommitsresponse.Length-1].commit.committer.date
+                if ($commitCountingMethod -eq "last")
+                {
+                    $startDate = $prCommitsresponse[$prCommitsresponse.Length-1].commit.committer.date
+                }
+                elseif ($commitCountingMethod -eq "first")
+                {
+                    $startDate = $prCommitsresponse[0].commit.committer.date
+                }
+                else
+                {
+                    Write-Output "Commit counting method '$commitCountingMethod' is unknown. Expecting 'first' or 'last'"
+                }
             }
-            elseif ($commitCountingMethod -eq "first")
-            {
-                $startDate = $prCommitsresponse[0].commit.committer.date
-            }
-            else
-            {
-                Write-Output "Commit counting method '$commitCountingMethod' is unknown. Expecting 'first' or 'last'"
-            }
-        }
-        #$pr.merged_at -as [DateTime]
-        if ($pr.state -eq "closed" -and $pr.merged_at -ne $null)
-        {
-            $prTimeDuration = New-TimeSpan –Start $startDate –End $pr.merged_at
-        }
-        else
-        {
-            $prTimeDuration = $null
-        }
-        Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
-        if ($pr.number -eq 610)
-        {
-            break
+        
+            $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
+            Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
         }
     }
 
