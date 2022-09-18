@@ -11,8 +11,38 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      #- uses: actions/checkout@v3
-      - uses: samsmithnz/lead-time-for-changes@main
-        #with:
-        #  workflows: 'CI'
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 #fetch-depth is needed for GitVersion
+          #Install and calculate the new version with GitVersion          
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v0.9.13
+        with:
+          versionSpec: 5.x
+      - name: Determine Version
+        uses: gittools/actions/gitversion/execute@v0.9.13
+        id: gitversion # step id used as reference for output values
+      - name: Display GitVersion outputs
+        run: |
+          echo "Version: ${{ steps.gitversion.outputs.SemVer }}"
+          echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
+
+      - name: Test this repo
+        uses: samsmithnz/lead-time-for-changes@main
+        with:
+          workflows: 'CI'
+      - name: Test elite repo with PAT Token, using last commit method (no dev time)
+        uses: samsmithnz/deployment-frequency@main
+        with:
+          workflows: 'Feature Flags CI/CD'
+          owner-repo: 'samsmithnz/SamsFeatureFlags'
+          commit-counting-method: 'last'
+          pat-token: "${{ secrets.PATTOKEN }}"
+      - name: Test elite repo with PAT Token, using first commit method (including dev time)
+        uses: samsmithnz/deployment-frequency@main
+        with:
+          workflows: 'Feature Flags CI/CD'
+          owner-repo: 'samsmithnz/SamsFeatureFlags'
+          commit-counting-method: 'first'
+          pat-token: "${{ secrets.PATTOKEN }}"
+          
