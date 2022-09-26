@@ -71,5 +71,21 @@ Gather the metric from another repository using GitHub App authentication method
     app-private-key: "${{ secrets.APPPRIVATEKEY }}"
 ```
 
-
+# Setup
 Permissions: Read access to actions, metadata, and pull requests
+
+# Output
+
+Current output shows the inputs, authenication method, rate limit consumption, and then the actual lead time for changes
+```
+Owner/Repo: samsmithnz/SamsFeatureFlags
+Workflows: Feature Flags CI/CD
+Branch: main
+Number of days: 30
+Commit counting method 'last' being used
+Authentication detected: PAT TOKEN
+PR average time duration 5.4612962962963
+Workflow average time duration 0.30224537037037
+Rate limit consumption: 242 / 5000
+Lead time for changes average over last 30 days, is 5.76 hours, with a DORA rating of 'Elite'
+```
