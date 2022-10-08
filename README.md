@@ -1,4 +1,4 @@
-# lead-time-for-changes
+# Lead Time for Changes
 A GitHub Action to roughly calculate DORA lead time for changes This is not meant to be an exhaustive calculation, but we are able to approximate fairly close for most  of workflows. Why? Our [insights](https://samlearnsazure.blog/2022/08/23/my-insights-about-measuring-dora-devops-metrics-and-how-you-can-learn-from-my-mistakes/) indicated that many applications don't need exhaustive DORA analysis - a high level, order of magnitude result is accurate for most workloads. 
 
 [![CI](https://github.com/samsmithnz/lead-time-for-changes/actions/workflows/workflow.yml/badge.svg)](https://github.com/samsmithnz/lead-time-for-changes/actions/workflows/workflow.yml)
@@ -11,7 +11,7 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 ## Open questions
 
 ## Inputs
-- `workflows`: required, string, The name of the workflows to process. Multiple workflows can be separated by `,` (note that currently only the first workflow in the string is processed)
+- `workflows`: required, string, The name of the workflows to process. Multiple workflows can be separated by `,` 
 - `owner-repo`: optional, string, defaults to the repo where the action runs. Can target another owner or org and repo. e.g. `'samsmithnz/DevOpsMetrics'`, but will require authenication (see below)
 - `default-branch`: optional, string, defaults to `main` 
 - `number-of-days`: optional, integer, defaults to `30` (days)

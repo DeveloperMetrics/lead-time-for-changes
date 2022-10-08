@@ -73,7 +73,15 @@ function Main ([string] $ownerRepo,
         {
             $prCounter++
             $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
-            $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -ErrorAction Stop
+            if (!$authHeader)
+            {
+                #No authentication
+                $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
+            }
+            else
+            {
+                $prCommitsresponse = Invoke-RestMethod -Uri $url2 -ContentType application/json -Method Get -Headers @{Authorization=($authHeader["Authorization"])} -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus" 
+            }
             if ($prCommitsresponse.Length -ge 1)
             {
                 if ($commitCountingMethod -eq "last")
@@ -90,9 +98,12 @@ function Main ([string] $ownerRepo,
                 }
             }
         
-            $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
-            $totalPRHours += $prTimeDuration.TotalHours
-            #Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
+            if ($startDate -ne $null)
+            {
+                $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
+                $totalPRHours += $prTimeDuration.TotalHours
+                #Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
+            }
         }
     }
 
@@ -136,13 +147,16 @@ function Main ([string] $ownerRepo,
 
     #==========================================
     #Filter out workflows that were successful. Measure the number by date/day. Aggegate workflows together
-    $workflowCounter = 0
-    $totalWorkflowHours = 0
+    $workflowList = @()
     
     #For each workflow id, get the last 100 workflows from github
     Foreach ($workflowId in $workflowIds){
+        #set workflow counters    
+        $workflowCounter = 0
+        $totalWorkflowHours = 0
+        
         #Get workflow definitions from github
-        $uri4 = "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100"
+        $uri4 = "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100&status=completed"
         if (!$authHeader)
         {
             $workflowRunsResponse = Invoke-RestMethod -Uri $uri4 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
@@ -154,7 +168,7 @@ function Main ([string] $ownerRepo,
 
         Foreach ($run in $workflowRunsResponse.workflow_runs){
             #Count workflows that are completed, on the target branch, and were created within the day range we are looking at
-            if ($run.status -eq "completed" -and $run.head_branch -eq $branch -and $run.created_at -gt (Get-Date).AddDays(-$numberOfDays))
+            if ($run.head_branch -eq $branch -and $run.created_at -gt (Get-Date).AddDays(-$numberOfDays))
             {
                 #Write-Output "Adding item with status $($run.status), branch $($run.head_branch), created at $($run.created_at), compared to $((Get-Date).AddDays(-$numberOfDays))"
                 $workflowCounter++       
@@ -162,6 +176,12 @@ function Main ([string] $ownerRepo,
                 $workflowDuration = New-TimeSpan –Start $run.created_at –End $run.updated_at
                 $totalworkflowHours += $workflowDuration.TotalHours    
             }
+        }
+        
+        #Save the workflow duration working per workflow
+        if ($workflowCounter -gt 0)
+        {             
+            $workflowList += New-Object PSObject -Property @{totalworkflowHours=$totalworkflowHours;workflowCounter=$workflowCounter}                
         }
     }
 
@@ -171,14 +191,20 @@ function Main ([string] $ownerRepo,
     {   
         $prCounter = 1
     }
-    if ($workflowCounter -eq 0)
-    {
-        $workflowCounter = 1
+    $totalAverageworkflowHours = 0
+    Foreach ($workflowItem in $workflowList){
+        if ($workflowItem.workflowCounter -eq 0)
+        {
+            $workflowItem.workflowCounter = 1
+        }
+        $totalAverageworkflowHours += $workflowItem.totalworkflowHours / $workflowItem.workflowCounter
     }
+    
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
     Write-Output "PR average time duration $($totalPRHours / $prCounter)"
-    Write-Output "Workflow average time duration $($totalworkflowHours / $workflowCounter)"
-    $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalworkflowHours / $workflowCounter)
+
+    Write-Output "Workflow average time duration $($totalAverageworkflowHours)"
+    $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalAverageworkflowHours)
 
     #==========================================
     #Show current rate limit
