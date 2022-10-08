@@ -11,7 +11,7 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 ## Open questions
 
 ## Inputs
-- `workflows`: required, string, The name of the workflows to process. Multiple workflows can be separated by `,` (note that currently only the first workflow in the string is processed)
+- `workflows`: required, string, The name of the workflows to process. Multiple workflows can be separated by `,` 
 - `owner-repo`: optional, string, defaults to the repo where the action runs. Can target another owner or org and repo. e.g. `'samsmithnz/DevOpsMetrics'`, but will require authenication (see below)
 - `default-branch`: optional, string, defaults to `main` 
 - `number-of-days`: optional, integer, defaults to `30` (days)
