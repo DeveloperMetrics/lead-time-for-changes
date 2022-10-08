@@ -142,7 +142,7 @@ function Main ([string] $ownerRepo,
     #For each workflow id, get the last 100 workflows from github
     Foreach ($workflowId in $workflowIds){
         #Get workflow definitions from github
-        $uri4 = "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100"
+        $uri4 = "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100&status=completed"
         if (!$authHeader)
         {
             $workflowRunsResponse = Invoke-RestMethod -Uri $uri4 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
