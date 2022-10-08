@@ -56,7 +56,7 @@ jobs:
           owner-repo: 'samsmithnz/SamsFeatureFlags'
           commit-counting-method: 'first'
           pat-token: "${{ secrets.PATTOKEN }}"
-       - name: Test elite repo, multiple workflows, with PAT Token
+      - name: Test elite repo, multiple workflows, with PAT Token
         uses: ./
         with:
           workflows: 'Feature Flags CI/CD,CodeQL'
