@@ -224,7 +224,7 @@ function Main ([string] $ownerRepo,
     $dailyDeployment = 1
     $weeklyDeployment = 1 / 7
     $monthlyDeployment = 1 / 30
-    $everySixMonthsDeployment = 1 / (6 * 30) #//Every 6 months
+    $everySixMonthsDeployment = 1 / (6 * 30) #Every 6 months
     $yearlyDeployment = 1 / 365
 
     #Calculate rating 
