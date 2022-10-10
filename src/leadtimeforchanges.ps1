@@ -258,7 +258,7 @@ function Main ([string] $ownerRepo,
     #Calculate metric and unit
     if ($leadTimeForChangesInHours -gt $dailyDeployment) 
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours,2)
+        $displayMetric = [math]::Round($leadTimeForChangesInHours, 2)
         $displayUnit = "hours"
     }
     elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
@@ -268,17 +268,17 @@ function Main ([string] $ownerRepo,
     }
     elseif ($leadTimeForChangesInHours -lt $weeklyDeployment -and $leadTimeForChangesInHours -ge $monthlyDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24,2)
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
     }
     elseif ($leadTimeForChangesInHours -lt $monthlyDeployment -and $leadTimeForChangesInHours -gt $yearlyDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30,2)
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30, 2)
         $displayUnit = "months"
     }
     elseif ($leadTimeForChangesInHours -le $yearlyDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 365,2)
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 365, 2)
         $displayUnit = "years"
     }
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
