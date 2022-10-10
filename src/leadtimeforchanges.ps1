@@ -202,9 +202,9 @@ function Main ([string] $ownerRepo,
     
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
     Write-Host "PR average time duration $($totalPRHours / $prCounter)"
-
     Write-Host "Workflow average time duration $($totalAverageworkflowHours)"
     $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalAverageworkflowHours)
+    Write-Host "Lead time for changes in hours: $leadTimeForChangesInHours"
 
     #==========================================
     #Show current rate limit
@@ -221,65 +221,56 @@ function Main ([string] $ownerRepo,
 
     #==========================================
     #output result
-    $dailyDeployment = 1
-    $weeklyDeployment = 1 / 7
-    $monthlyDeployment = 1 / 30
-    $everySixMonthsDeployment = 1 / (6 * 30) #Every 6 months
-    $yearlyDeployment = 1 / 365
+    $dailyDeployment = 24
+    $weeklyDeployment = 24 * 7
+    $monthlyDeployment = 24 * 30
+    $everySixMonthsDeployment = 24 * 30 * 6 #Every 6 months
+    $leadTimeForChangesInHours = 24
+    Write-Host "Lead time for changes in hours: $leadTimeForChangesInHours"
 
-    #Calculate rating 
-    $rating = ""
+
+    #Calculate rating, metric and unit  
     if ($leadTimeForChangesInHours -le 0)
     {
         $rating = "None"
         $color = "lightgrey"
+        $displayMetric = 0
+        $displayUnit = "hours"
     }
-    elseif ($leadTimeForChangesInHours -ge $dailyDeployment)
+    elseif ($leadTimeForChangesInHours -lt $dailyDeployment) 
     {
         $rating = "Elite"
         $color = "green"
-    }
-    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
-    {
-        $rating = "High"
-        $color = "green"
-    }
-    elseif ($leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
-    {
-        $rating = "Medium"
-        $color = "yellow"
-    }
-    elseif ($leadTimeForChangesInHours -le $everySixMonthsDeployment)
-    {
-        $rating = "Low"
-        $color = "red"
-    }
-
-    #Calculate metric and unit
-    if ($leadTimeForChangesInHours -gt $dailyDeployment) 
-    {
         $displayMetric = [math]::Round($leadTimeForChangesInHours, 2)
         $displayUnit = "hours"
     }
-    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
+    elseif ($leadTimeForChangesInHours -ge $dailyDeployment -and $leadTimeForChangesInHours -le $weeklyDeployment)
     {
+        $rating = "Elite"
+        $color = "green"
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
     }
-    elseif ($leadTimeForChangesInHours -lt $weeklyDeployment -and $leadTimeForChangesInHours -ge $monthlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $weeklyDeployment -and $leadTimeForChangesInHours -le $monthlyDeployment)
     {
+        $rating = "High"
+        $color = "green"
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
     }
-    elseif ($leadTimeForChangesInHours -lt $monthlyDeployment -and $leadTimeForChangesInHours -gt $yearlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $monthlyDeployment -and $leadTimeForChangesInHours -le $everySixMonthsDeployment)
     {
+        $rating = "Medium"
+        $color = "yellow"
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30, 2)
         $displayUnit = "months"
     }
-    elseif ($leadTimeForChangesInHours -le $yearlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $everySixMonthsDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 365, 2)
-        $displayUnit = "years"
+        $rating = "Low"
+        $color = "red"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30, 2)
+        $displayUnit = "months"
     }
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
     {
