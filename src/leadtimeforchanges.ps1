@@ -126,16 +126,20 @@ function Main ([string] $ownerRepo,
 
     #Extract workflow ids from the definitions, using the array of names. Number of Ids should == number of workflow names
     $workflowIds = [System.Collections.ArrayList]@()
+    $workflowNames = [System.Collections.ArrayList]@()
     Foreach ($workflow in $workflowsResponse.workflows){
 
         Foreach ($arrayItem in $workflowsArray){
             if ($workflow.name -eq $arrayItem)
             {
-                #Write-Host "'$($workflow.name)' matched with $arrayItem"
-                $result = $workflowIds.Add($workflow.id)
-                if ($result -lt 0)
+                #This looks odd: but assigning to a (throwaway) variable stops the index of the arraylist being output to the console. Using an arraylist over an array has advantages making this worth it for here
+                if (!$workflowIds.Contains($workflow.id))
                 {
-                    Write-Output "unexpected result"
+                    $result = $workflowIds.Add($workflow.id)
+                }
+                if (!$workflowNames.Contains($workflow.name))
+                {
+                    $result = $workflowNames.Add($workflow.name)
                 }
             }
         }
@@ -275,10 +279,13 @@ function Main ([string] $ownerRepo,
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
     {
         Write-Host "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
+        return Format-OutputMarkdown -workflowNames $workflowNames -displayMetric $displayMetric -displayUnit $displayUnit -repo $ownerRepo -branch $branch -numberOfDays $numberOfDays -color $color -rating $rating
     }
     else
     {
-        Write-Host "Lead time for changes: no data to display for this workflow and time period"
+        Write-Host "No lead time for changes to display for this workflow and time period"
+        return Format-NoOutputMarkdown -workflows $workflows -numberOfDays $numberOfDays
+
     }
 }
 
@@ -378,6 +385,30 @@ function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $ap
     $tokenResponse = Invoke-RestMethod -Uri $uri -Headers $jwtHeader -Method Post -ErrorAction Stop
     # Write-Host $tokenResponse.token
     return $tokenResponse.token
+}
+
+# Format output for deployment frequency in markdown
+function Format-OutputMarkdown([array] $workflowNames, [string] $rating, [string] $displayMetric, [string] $displayUnit, [string] $repo, [string] $branch, [string] $numberOfDays, [string] $numberOfUniqueDates, [string] $color)
+{
+    $encodedString = [uri]::EscapeUriString($displayMetric + " " + $displayUnit)
+    #double newline to start the line helps with formatting in GitHub logs
+    $markdown = "`n`n![Lead time for changes](https://img.shields.io/badge/frequency-" + $encodedString + "-" + $color + "?logo=github&label=Lead%20time%20for%20changes)`n" +
+        "**Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.`n" +
+        "**Results:** Lead time for changes is **$displayMetric $displayUnit** with a **$rating** rating, over the last **$numberOfDays days**.`n" + 
+        "**Details**:`n" + 
+        "- Repository: $repo using $branch branch`n" + 
+        "- Workflow(s) used: $($workflowNames -join ", ")`n" +
+        "---"
+    return $markdown
+}
+
+function Format-NoOutputMarkdown([string] $workflows, [string] $numberOfDays)
+{
+    #double newline to start the line helps with formatting in GitHub logs
+    $markdown = "`n`n![Lead time for changes](https://img.shields.io/badge/frequency-none-lightgrey?logo=github&label=Lead%20time%20for%20changes)`n`n" +
+        "No data to display for $ownerRepo over the last $numberOfDays days`n`n" + 
+        "---"
+    return $markdown
 }
 
 main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod  -patToken $patToken -actionsToken $actionsToken -appId $appId -appInstallationId $appInstallationId -appPrivateKey $appPrivateKey
