@@ -234,6 +234,13 @@ function Main ([string] $ownerRepo,
         $displayMetric = 0
         $displayUnit = "hours"
     }
+    elseif ($leadTimeForChangesInHours -lt 1) 
+    {
+        $rating = "Elite"
+        $color = "green"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours * 60, 2)
+        $displayUnit = "minutes"
+    }
     elseif ($leadTimeForChangesInHours -le $dailyDeployment) 
     {
         $rating = "Elite"
