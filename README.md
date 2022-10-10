@@ -89,3 +89,16 @@ Workflow average time duration 0.30224537037037
 Rate limit consumption: 242 / 5000
 Lead time for changes average over last 30 days, is 5.76 hours, with a DORA rating of 'Elite'
 ```
+
+In the job summary, we show a badge with details:
+> ![Lead time for changes](https://img.shields.io/badge/frequency-4.67%20times%20per%20week-green?logo=github&label=Lead%20time%20for%20changes)
+> 
+> **Definition:** For the primary application or service, how often is it successfully deployed to production.
+> 
+> **Results:** Deployment frequency is **4.67 times per week** with a **High** rating, over the last **30 days**.
+> 
+> **Details**:
+> - Repository: samsmithnz/deployment-frequency using main branch
+> - Workflow(s) used: CI
+> - Active days of deployment: 13 days
+> ---

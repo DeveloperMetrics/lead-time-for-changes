@@ -30,17 +30,17 @@ function Main ([string] $ownerRepo,
     $ownerRepoArray = $ownerRepo -split '/'
     $owner = $ownerRepoArray[0]
     $repo = $ownerRepoArray[1]
-    Write-Output "Owner/Repo: $owner/$repo"
     $workflowsArray = $workflows -split ','
-    Write-Output "Workflows: $($workflowsArray[0])"
-    Write-Output "Branch: $branch"
     $numberOfDays = $numberOfDays        
-    Write-Output "Number of days: $numberOfDays"
     if ($commitCountingMethod -eq "")
     {
         $commitCountingMethod = "last"
     }
-    Write-Output "Commit counting method '$commitCountingMethod' being used"
+    Write-Host "Owner/Repo: $owner/$repo"
+    Write-Host "Number of days: $numberOfDays"
+    Write-Host "Workflows: $($workflowsArray[0])"
+    Write-Host "Branch: $branch"
+    Write-Host "Commit counting method '$commitCountingMethod' being used"
 
     #==========================================
     # Get authorization headers
@@ -102,7 +102,7 @@ function Main ([string] $ownerRepo,
             {
                 $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
                 $totalPRHours += $prTimeDuration.TotalHours
-                #Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
+                #Write-Host "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
             }
         }
     }
@@ -131,16 +131,12 @@ function Main ([string] $ownerRepo,
         Foreach ($arrayItem in $workflowsArray){
             if ($workflow.name -eq $arrayItem)
             {
-                #Write-Output "'$($workflow.name)' matched with $arrayItem"
+                #Write-Host "'$($workflow.name)' matched with $arrayItem"
                 $result = $workflowIds.Add($workflow.id)
                 if ($result -lt 0)
                 {
                     Write-Output "unexpected result"
                 }
-            }
-            else 
-            {
-                #Write-Output "'$($workflow.name)' DID NOT match with $arrayItem"
             }
         }
     }
@@ -170,7 +166,7 @@ function Main ([string] $ownerRepo,
             #Count workflows that are completed, on the target branch, and were created within the day range we are looking at
             if ($run.head_branch -eq $branch -and $run.created_at -gt (Get-Date).AddDays(-$numberOfDays))
             {
-                #Write-Output "Adding item with status $($run.status), branch $($run.head_branch), created at $($run.created_at), compared to $((Get-Date).AddDays(-$numberOfDays))"
+                #Write-Host "Adding item with status $($run.status), branch $($run.head_branch), created at $($run.created_at), compared to $((Get-Date).AddDays(-$numberOfDays))"
                 $workflowCounter++       
                 #calculate the workflow duration            
                 $workflowDuration = New-TimeSpan –Start $run.created_at –End $run.updated_at
@@ -201,9 +197,9 @@ function Main ([string] $ownerRepo,
     }
     
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
-    Write-Output "PR average time duration $($totalPRHours / $prCounter)"
+    Write-Host "PR average time duration $($totalPRHours / $prCounter)"
 
-    Write-Output "Workflow average time duration $($totalAverageworkflowHours)"
+    Write-Host "Workflow average time duration $($totalAverageworkflowHours)"
     $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalAverageworkflowHours)
 
     #==========================================
@@ -217,7 +213,7 @@ function Main ([string] $ownerRepo,
     {
         $rateLimitResponse = Invoke-RestMethod -Uri $uri5 -ContentType application/json -Method Get -Headers @{Authorization=($authHeader["Authorization"])} -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
     }    
-    Write-Output "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
+    Write-Host "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
 
     #==========================================
     #output result
@@ -278,11 +274,11 @@ function Main ([string] $ownerRepo,
     }
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
     {
-        Write-Output "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
+        Write-Host "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
     }
     else
     {
-        Write-Output "Lead time for changes: no data to display for this workflow and time period"
+        Write-Host "Lead time for changes: no data to display for this workflow and time period"
     }
 }
 
