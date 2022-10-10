@@ -101,11 +101,3 @@ In the job summary, we show a badge with details:
 > - Repository: samsmithnz/deployment-frequency using main branch
 > - Workflow(s) used: CI
 > ---
-
-
-![Lead time for changes](https://img.shields.io/badge/frequency-5.61%20hours-green?logo=github&label=Lead%20time%20for%20changes)
-**Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.
-**Results:** Lead time for changes is **5.61 hours** with a **Elite** rating, over the last **30 days**.
-**Details**:
-- Repository: samsmithnz/SamsFeatureFlags using main branch
-- Workflow(s) used: Feature Flags CI/CD
