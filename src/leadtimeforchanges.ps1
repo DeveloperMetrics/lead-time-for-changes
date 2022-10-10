@@ -225,9 +225,6 @@ function Main ([string] $ownerRepo,
     $weeklyDeployment = 24 * 7
     $monthlyDeployment = 24 * 30
     $everySixMonthsDeployment = 24 * 30 * 6 #Every 6 months
-    $leadTimeForChangesInHours = 24
-    Write-Host "Lead time for changes in hours: $leadTimeForChangesInHours"
-
 
     #Calculate rating, metric and unit  
     if ($leadTimeForChangesInHours -le 0)
@@ -237,16 +234,16 @@ function Main ([string] $ownerRepo,
         $displayMetric = 0
         $displayUnit = "hours"
     }
-    elseif ($leadTimeForChangesInHours -lt $dailyDeployment) 
+    elseif ($leadTimeForChangesInHours -le $dailyDeployment) 
     {
         $rating = "Elite"
         $color = "green"
         $displayMetric = [math]::Round($leadTimeForChangesInHours, 2)
         $displayUnit = "hours"
     }
-    elseif ($leadTimeForChangesInHours -ge $dailyDeployment -and $leadTimeForChangesInHours -le $weeklyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $dailyDeployment -and $leadTimeForChangesInHours -le $weeklyDeployment)
     {
-        $rating = "Elite"
+        $rating = "High"
         $color = "green"
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
