@@ -38,6 +38,8 @@ jobs:
         uses: actions/checkout@v3
         with: 
           ref: ${{ github.ref }}
+
+      #basic tests
       - name: Test this repo
         uses: ./ # the ./ runs the action.yml in this repo 
         with:
@@ -56,6 +58,8 @@ jobs:
           owner-repo: 'samsmithnz/SamsFeatureFlags'
           commit-counting-method: 'first'
           pat-token: "${{ secrets.PATTOKEN }}"
+
+      #authenication tests    
       - name: Test elite repo, multiple workflows, with PAT Token
         uses: ./
         with:

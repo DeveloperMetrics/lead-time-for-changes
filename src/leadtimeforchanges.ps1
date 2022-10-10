@@ -30,17 +30,17 @@ function Main ([string] $ownerRepo,
     $ownerRepoArray = $ownerRepo -split '/'
     $owner = $ownerRepoArray[0]
     $repo = $ownerRepoArray[1]
-    Write-Output "Owner/Repo: $owner/$repo"
     $workflowsArray = $workflows -split ','
-    Write-Output "Workflows: $($workflowsArray[0])"
-    Write-Output "Branch: $branch"
     $numberOfDays = $numberOfDays        
-    Write-Output "Number of days: $numberOfDays"
     if ($commitCountingMethod -eq "")
     {
         $commitCountingMethod = "last"
     }
-    Write-Output "Commit counting method '$commitCountingMethod' being used"
+    Write-Host "Owner/Repo: $owner/$repo"
+    Write-Host "Number of days: $numberOfDays"
+    Write-Host "Workflows: $($workflowsArray[0])"
+    Write-Host "Branch: $branch"
+    Write-Host "Commit counting method '$commitCountingMethod' being used"
 
     #==========================================
     # Get authorization headers
@@ -102,7 +102,7 @@ function Main ([string] $ownerRepo,
             {
                 $prTimeDuration = New-TimeSpan –Start $startDate –End $mergedAt
                 $totalPRHours += $prTimeDuration.TotalHours
-                #Write-Output "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
+                #Write-Host "$($pr.number) time duration in hours: $($prTimeDuration.TotalHours)"
             }
         }
     }
@@ -126,21 +126,21 @@ function Main ([string] $ownerRepo,
 
     #Extract workflow ids from the definitions, using the array of names. Number of Ids should == number of workflow names
     $workflowIds = [System.Collections.ArrayList]@()
+    $workflowNames = [System.Collections.ArrayList]@()
     Foreach ($workflow in $workflowsResponse.workflows){
 
         Foreach ($arrayItem in $workflowsArray){
             if ($workflow.name -eq $arrayItem)
             {
-                #Write-Output "'$($workflow.name)' matched with $arrayItem"
-                $result = $workflowIds.Add($workflow.id)
-                if ($result -lt 0)
+                #This looks odd: but assigning to a (throwaway) variable stops the index of the arraylist being output to the console. Using an arraylist over an array has advantages making this worth it for here
+                if (!$workflowIds.Contains($workflow.id))
                 {
-                    Write-Output "unexpected result"
+                    $result = $workflowIds.Add($workflow.id)
                 }
-            }
-            else 
-            {
-                #Write-Output "'$($workflow.name)' DID NOT match with $arrayItem"
+                if (!$workflowNames.Contains($workflow.name))
+                {
+                    $result = $workflowNames.Add($workflow.name)
+                }
             }
         }
     }
@@ -170,7 +170,7 @@ function Main ([string] $ownerRepo,
             #Count workflows that are completed, on the target branch, and were created within the day range we are looking at
             if ($run.head_branch -eq $branch -and $run.created_at -gt (Get-Date).AddDays(-$numberOfDays))
             {
-                #Write-Output "Adding item with status $($run.status), branch $($run.head_branch), created at $($run.created_at), compared to $((Get-Date).AddDays(-$numberOfDays))"
+                #Write-Host "Adding item with status $($run.status), branch $($run.head_branch), created at $($run.created_at), compared to $((Get-Date).AddDays(-$numberOfDays))"
                 $workflowCounter++       
                 #calculate the workflow duration            
                 $workflowDuration = New-TimeSpan –Start $run.created_at –End $run.updated_at
@@ -201,10 +201,10 @@ function Main ([string] $ownerRepo,
     }
     
     #Aggregate the PR and workflow processing times to calculate the average number of hours 
-    Write-Output "PR average time duration $($totalPRHours / $prCounter)"
-
-    Write-Output "Workflow average time duration $($totalAverageworkflowHours)"
+    Write-Host "PR average time duration $($totalPRHours / $prCounter)"
+    Write-Host "Workflow average time duration $($totalAverageworkflowHours)"
     $leadTimeForChangesInHours = ($totalPRHours / $prCounter) + ($totalAverageworkflowHours)
+    Write-Host "Lead time for changes in hours: $leadTimeForChangesInHours"
 
     #==========================================
     #Show current rate limit
@@ -217,72 +217,74 @@ function Main ([string] $ownerRepo,
     {
         $rateLimitResponse = Invoke-RestMethod -Uri $uri5 -ContentType application/json -Method Get -Headers @{Authorization=($authHeader["Authorization"])} -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
     }    
-    Write-Output "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
+    Write-Host "Rate limit consumption: $($rateLimitResponse.rate.used) / $($rateLimitResponse.rate.limit)"
 
     #==========================================
     #output result
-    $dailyDeployment = 1
-    $weeklyDeployment = 1 / 7
-    $monthlyDeployment = 1 / 30
-    $everySixMonthsDeployment = 1 / (6 * 30) #//Every 6 months
-    $yearlyDeployment = 1 / 365
+    $dailyDeployment = 24
+    $weeklyDeployment = 24 * 7
+    $monthlyDeployment = 24 * 30
+    $everySixMonthsDeployment = 24 * 30 * 6 #Every 6 months
 
-    #Calculate rating 
-    $rating = ""
+    #Calculate rating, metric and unit  
     if ($leadTimeForChangesInHours -le 0)
     {
         $rating = "None"
-    }
-    elseif ($leadTimeForChangesInHours -ge $dailyDeployment)
-    {
-        $rating = "Elite"
-    }
-    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
-    {
-        $rating = "High"
-    }
-    elseif ($leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
-    {
-        $rating = "Medium"
-    }
-    elseif ($leadTimeForChangesInHours -le $everySixMonthsDeployment)
-    {
-        $rating = "Low"
-    }
-
-    #Calculate metric and unit
-    if ($leadTimeForChangesInHours -gt $dailyDeployment) 
-    {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours,2)
+        $color = "lightgrey"
+        $displayMetric = 0
         $displayUnit = "hours"
     }
-    elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
+    elseif ($leadTimeForChangesInHours -lt 1) 
     {
+        $rating = "Elite"
+        $color = "green"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours * 60, 2)
+        $displayUnit = "minutes"
+    }
+    elseif ($leadTimeForChangesInHours -le $dailyDeployment) 
+    {
+        $rating = "Elite"
+        $color = "green"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours, 2)
+        $displayUnit = "hours"
+    }
+    elseif ($leadTimeForChangesInHours -gt $dailyDeployment -and $leadTimeForChangesInHours -le $weeklyDeployment)
+    {
+        $rating = "High"
+        $color = "green"
         $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
     }
-    elseif ($leadTimeForChangesInHours -lt $weeklyDeployment -and $leadTimeForChangesInHours -ge $monthlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $weeklyDeployment -and $leadTimeForChangesInHours -le $monthlyDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24,2)
+        $rating = "High"
+        $color = "green"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24, 2)
         $displayUnit = "days"
     }
-    elseif ($leadTimeForChangesInHours -lt $monthlyDeployment -and $leadTimeForChangesInHours -gt $yearlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $monthlyDeployment -and $leadTimeForChangesInHours -le $everySixMonthsDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30,2)
+        $rating = "Medium"
+        $color = "yellow"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30, 2)
         $displayUnit = "months"
     }
-    elseif ($leadTimeForChangesInHours -le $yearlyDeployment)
+    elseif ($leadTimeForChangesInHours -gt $everySixMonthsDeployment)
     {
-        $displayMetric = [math]::Round($leadTimeForChangesInHours / 365,2)
-        $displayUnit = "years"
+        $rating = "Low"
+        $color = "red"
+        $displayMetric = [math]::Round($leadTimeForChangesInHours / 24 / 30, 2)
+        $displayUnit = "months"
     }
     if ($leadTimeForChangesInHours -gt 0 -and $numberOfDays -gt 0)
     {
-        Write-Output "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
+        Write-Host "Lead time for changes average over last $numberOfDays days, is $displayMetric $displayUnit, with a DORA rating of '$rating'"
+        return GetFormattedMarkdown -workflowNames $workflowNames -displayMetric $displayMetric -displayUnit $displayUnit -repo $ownerRepo -branch $branch -numberOfDays $numberOfDays -color $color -rating $rating
     }
     else
     {
-        Write-Output "Lead time for changes: no data to display for this workflow and time period"
+        Write-Host "No lead time for changes to display for this workflow and time period"
+        return GetFormattedMarkdownForNoResult -workflows $workflows -numberOfDays $numberOfDays
     }
 }
 
@@ -382,6 +384,30 @@ function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $ap
     $tokenResponse = Invoke-RestMethod -Uri $uri -Headers $jwtHeader -Method Post -ErrorAction Stop
     # Write-Host $tokenResponse.token
     return $tokenResponse.token
+}
+
+# Format output for deployment frequency in markdown
+function GetFormattedMarkdown([array] $workflowNames, [string] $rating, [string] $displayMetric, [string] $displayUnit, [string] $repo, [string] $branch, [string] $numberOfDays, [string] $numberOfUniqueDates, [string] $color)
+{
+    $encodedString = [uri]::EscapeUriString($displayMetric + " " + $displayUnit)
+    #double newline to start the line helps with formatting in GitHub logs
+    $markdown = "`n`n![Lead time for changes](https://img.shields.io/badge/frequency-" + $encodedString + "-" + $color + "?logo=github&label=Lead%20time%20for%20changes)`n" +
+        "**Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.`n" +
+        "**Results:** Lead time for changes is **$displayMetric $displayUnit** with a **$rating** rating, over the last **$numberOfDays days**.`n" + 
+        "**Details**:`n" + 
+        "- Repository: $repo using $branch branch`n" + 
+        "- Workflow(s) used: $($workflowNames -join ", ")`n" +
+        "---"
+    return $markdown
+}
+
+function GetFormattedMarkdownForNoResult([string] $workflows, [string] $numberOfDays)
+{
+    #double newline to start the line helps with formatting in GitHub logs
+    $markdown = "`n`n![Lead time for changes](https://img.shields.io/badge/frequency-none-lightgrey?logo=github&label=Lead%20time%20for%20changes)`n`n" +
+        "No data to display for $ownerRepo over the last $numberOfDays days`n`n" + 
+        "---"
+    return $markdown
 }
 
 main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod  -patToken $patToken -actionsToken $actionsToken -appId $appId -appInstallationId $appInstallationId -appPrivateKey $appPrivateKey
