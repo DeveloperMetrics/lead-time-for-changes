@@ -232,22 +232,27 @@ function Main ([string] $ownerRepo,
     if ($leadTimeForChangesInHours -le 0)
     {
         $rating = "None"
+        $color = "lightgrey"
     }
     elseif ($leadTimeForChangesInHours -ge $dailyDeployment)
     {
         $rating = "Elite"
+        $color = "green"
     }
     elseif ($leadTimeForChangesInHours -le $dailyDeployment -and $leadTimeForChangesInHours -ge $weeklyDeployment)
     {
         $rating = "High"
+        $color = "green"
     }
     elseif ($leadTimeForChangesInHours -le $weeklyDeployment -and $leadTimeForChangesInHours -ge $everySixMonthsDeployment)
     {
         $rating = "Medium"
+        $color = "yellow"
     }
     elseif ($leadTimeForChangesInHours -le $everySixMonthsDeployment)
     {
         $rating = "Low"
+        $color = "red"
     }
 
     #Calculate metric and unit
@@ -285,7 +290,6 @@ function Main ([string] $ownerRepo,
     {
         Write-Host "No lead time for changes to display for this workflow and time period"
         return GetFormattedMarkdownForNoResult -workflows $workflows -numberOfDays $numberOfDays
-
     }
 }
 
