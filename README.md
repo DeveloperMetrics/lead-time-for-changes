@@ -92,12 +92,9 @@ Lead time for changes average over last 30 days, is 5.76 hours, with a DORA rati
 
 In the job summary, we show a badge with details:
  ---
- ![Lead time for changes](https://img.shields.io/badge/frequency-5.61%20hours-green?logo=github&label=Lead%20time%20for%20changes)
- 
- **Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.
- 
- **Results:** Lead time for changes is **5.61 hours** with a **Elite** rating, over the last **30 days**.
- 
+ ![Lead time for changes](https://img.shields.io/badge/frequency-5.61%20hours-green?logo=github&label=Lead%20time%20for%20changes)<br>
+ **Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.<br>
+ **Results:** Lead time for changes is **5.61 hours** with a **Elite** rating, over the last **30 days**.<br>
  **Details**:
  - Repository: samsmithnz/deployment-frequency using main branch
  - Workflow(s) used: CI
