@@ -237,7 +237,7 @@ function Main ([string] $ownerRepo,
     elseif ($leadTimeForChangesInHours -lt 1) 
     {
         $rating = "Elite"
-        $color = "green"
+        $color = "brightgreen"
         $displayMetric = [math]::Round($leadTimeForChangesInHours * 60, 2)
         $displayUnit = "minutes"
     }
