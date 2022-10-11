@@ -5,8 +5,14 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 [![Current Release](https://img.shields.io/github/release/samsmithnz/lead-time-for-changes/all.svg)](https://github.com/samsmithnz/lead-time-for-changes/releases)
 
 ## Current Calculation
+- Get the last 100 closed Pull Requests
+- For each Pull Request, if it was merged in the last 30 days, calculate the time the PR was open, taking the merge time and either the first or last commit time (specified as a parameter), aggregating for an overall PR duration average.
+- For each workflow, if it started in the last 30 days and was run on the target branch, calculate the workflow run time, aggregating for an overall workflow duration average
+- Add the Pull Request and workflow durations to output the lead time for changes result.
+- Then translate this result to friendly n days/weeks/months.
 
 ## Current Limitations
+- Only looks at the last 100 closed Pull Requests and 100 completed workflows. If number of Pull Requests and/or deployments to the target branch is low, this will skew the result.
 
 ## Open questions
 
