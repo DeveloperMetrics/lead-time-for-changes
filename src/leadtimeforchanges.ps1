@@ -48,7 +48,7 @@ function Main ([string] $ownerRepo,
 
     #Get pull requests from the repo 
     #https://developer.GitHub.com/v3/pulls/#list-pull-requests
-    $uri = "https://api.github.com/repos/$owner/$repo/pulls?state=all&head=$branch&per_page=100";
+    $uri = "https://api.github.com/repos/$owner/$repo/pulls?state=all&head=$branch&per_page=100&state=closed";
     if (!$authHeader)
     {
         #No authentication
@@ -69,7 +69,7 @@ function Main ([string] $ownerRepo,
     Foreach ($pr in $prsResponse){
 
         $mergedAt = $pr.merged_at
-        if ($pr.state -eq "closed" -and $mergedAt -ne $null -and $pr.merged_at -gt (Get-Date).AddDays(-$numberOfDays))
+        if ($mergedAt -ne $null -and $pr.merged_at -gt (Get-Date).AddDays(-$numberOfDays))
         {
             $prCounter++
             $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
