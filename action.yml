@@ -1,5 +1,9 @@
 name: 'DORA lead time for changes'
 description: 'A GitHub Action to roughly calculate DORA lead time for changes'
+author: developermetrics.org 
+branding:
+  icon: activity
+  color: gray-dark
 inputs:
   workflows: # required. string array of the name of the workflows to process
     description: 'the workflow name that is being scanned. Separate multiple workflows with commas'
