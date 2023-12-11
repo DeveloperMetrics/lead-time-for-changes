@@ -30,7 +30,7 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 
 To test the current repo (same as where the action runs)
 ```
-- uses: samsmithnz/lead-time-for-changes@main
+- uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI'
 ```
@@ -38,7 +38,7 @@ To test the current repo (same as where the action runs)
 To test another repo, with all arguments
 ```
 - name: Test another repo
-  uses: samsmithnz/lead-time-for-changes@main
+  uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI/CD'
     owner-repo: 'samsmithnz/DevOpsMetrics'
@@ -49,17 +49,17 @@ To test another repo, with all arguments
 To use a PAT token to access another (potentially private) repo:
 ```
 - name: Test elite repo with PAT Token
-  uses: samsmithnz/lead-time-for-changes@main
+  uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI/CD'
     owner-repo: 'samsmithnz/SamsFeatureFlags'
     pat-token: "${{ secrets.PATTOKEN }}"
 ```
 
-Use the built in Actions GitHub Token to retrieve the metrix 
+Use the built in Actions GitHub Token to retrieve the metrics
 ```
 - name: Test this repo with GitHub Token
-  uses: samsmithnz/lead-time-for-changes@main
+  uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI'
     actions-token: "${{ secrets.GITHUB_TOKEN }}"
@@ -68,7 +68,7 @@ Use the built in Actions GitHub Token to retrieve the metrix
 Gather the metric from another repository using GitHub App authentication method:
 ```
 - name: Test another repo with GitHub App
-  uses: samsmithnz/lead-time-for-changes@main
+  uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI'
     owner-repo: 'samsmithnz/some-other-repo'
@@ -103,6 +103,6 @@ In the job summary, we show a badge with details:
  **Definition:** For the primary application or service, how long does it take to go from code committed to code successfully running in production.<br>
  **Results:** Lead time for changes is **5.61 hours** with a **Elite** rating, over the last **30 days**.<br>
  **Details**:
- - Repository: samsmithnz/deployment-frequency using main branch
+ - Repository: DeveloperMetrics/deployment-frequency using main branch
  - Workflow(s) used: CI
  ---
