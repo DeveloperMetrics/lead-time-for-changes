@@ -1,8 +1,8 @@
 # Lead Time for Changes
 A GitHub Action to roughly calculate DORA lead time for changes This is not meant to be an exhaustive calculation, but we are able to approximate fairly close for most  of workflows. Why? Our [insights](https://samlearnsazure.blog/2022/08/23/my-insights-about-measuring-dora-devops-metrics-and-how-you-can-learn-from-my-mistakes/) indicated that many applications don't need exhaustive DORA analysis - a high level, order of magnitude result is accurate for most workloads. 
 
-[![CI](https://github.com/samsmithnz/lead-time-for-changes/actions/workflows/workflow.yml/badge.svg)](https://github.com/samsmithnz/lead-time-for-changes/actions/workflows/workflow.yml)
-[![Current Release](https://img.shields.io/github/release/samsmithnz/lead-time-for-changes/all.svg)](https://github.com/samsmithnz/lead-time-for-changes/releases)
+[![CI](https://github.com/DeveloperMetrics/lead-time-for-changes/actions/workflows/workflow.yml/badge.svg)](https://github.com/DeveloperMetrics/lead-time-for-changes/actions/workflows/workflow.yml)
+[![Current Release](https://img.shields.io/github/release/DeveloperMetrics/lead-time-for-changes/all.svg)](https://github.com/DeveloperMetrics/lead-time-for-changes/releases)
 
 ## Current Calculation
 - Get the last 100 closed Pull Requests
@@ -18,7 +18,7 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 
 ## Inputs
 - `workflows`: required, string, The name of the workflows to process. Multiple workflows can be separated by `,` 
-- `owner-repo`: optional, string, defaults to the repo where the action runs. Can target another owner or org and repo. e.g. `'samsmithnz/DevOpsMetrics'`, but will require authenication (see below)
+- `owner-repo`: optional, string, defaults to the repo where the action runs. Can target another owner or org and repo. e.g. `'DeveloperMetrics/DevOpsMetrics'`, but will require authenication (see below)
 - `default-branch`: optional, string, defaults to `main` 
 - `number-of-days`: optional, integer, defaults to `30` (days)
 - commit-counting-method: #optional, defaults to 'last'. Accepts two values, 'last' - to start timing from the last commit of a PR, and 'first' to start timing from the first commit of a PR
@@ -41,7 +41,7 @@ To test another repo, with all arguments
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI/CD'
-    owner-repo: 'samsmithnz/DevOpsMetrics'
+    owner-repo: 'DeveloperMetrics/DevOpsMetrics'
     default-branch: 'main'
     number-of-days: 30
 ```
@@ -52,7 +52,7 @@ To use a PAT token to access another (potentially private) repo:
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI/CD'
-    owner-repo: 'samsmithnz/SamsFeatureFlags'
+    owner-repo: 'DeveloperMetrics/SamsFeatureFlags'
     pat-token: "${{ secrets.PATTOKEN }}"
 ```
 
@@ -71,7 +71,7 @@ Gather the metric from another repository using GitHub App authentication method
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI'
-    owner-repo: 'samsmithnz/some-other-repo'
+    owner-repo: 'DeveloperMetrics/some-other-repo'
     app-id: "${{ secrets.APPID }}"
     app-install-id: "${{ secrets.APPINSTALLID }}"
     app-private-key: "${{ secrets.APPPRIVATEKEY }}"
@@ -84,7 +84,7 @@ Permissions: Read access to actions, metadata, and pull requests
 
 Current output shows the inputs, authenication method, rate limit consumption, and then the actual lead time for changes
 ```
-Owner/Repo: samsmithnz/SamsFeatureFlags
+Owner/Repo: DeveloperMetrics/SamsFeatureFlags
 Workflows: Feature Flags CI/CD
 Branch: main
 Number of days: 30
