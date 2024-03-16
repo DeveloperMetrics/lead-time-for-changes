@@ -44,7 +44,7 @@ function Main ([string] $ownerRepo,
 
     #==========================================
     # Get authorization headers
-    $authHeader = GetAuthHeader($patToken, $actionsToken)
+    $authHeader = GetAuthHeader $patToken $actionsToken $appId $appInstallationId $appPrivateKey
 
     #Get pull requests from the repo 
     #https://developer.GitHub.com/v3/pulls/#list-pull-requests
