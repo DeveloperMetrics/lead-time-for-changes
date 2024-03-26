@@ -309,7 +309,7 @@ function GetAuthHeader ([string] $patToken, [string] $actionsToken, [string] $ap
     elseif (![string]::IsNullOrEmpty($actionsToken))
     {
         Write-Host "Authentication detected: GITHUB TOKEN"  
-        $authHeader = @{Authorization=("Bearer {0}" -f $base64AuthInfo)}
+        $authHeader = @{Authorization=("Bearer {0}" -f $actionsToken)}
     }
     elseif (![string]::IsNullOrEmpty($appId)) # GitHup App auth
     {
