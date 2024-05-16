@@ -29,14 +29,14 @@ A GitHub Action to roughly calculate DORA lead time for changes This is not mean
 - `app-private-key` optional, string, defaults to '', private key which has been generated for the installed instance of the GitHub app. Must be provided without leading `'-----BEGIN RSA PRIVATE KEY----- '` and trailing `' -----END RSA PRIVATE KEY-----'`.
 
 To test the current repo (same as where the action runs)
-```
+```yml
 - uses: DeveloperMetrics/lead-time-for-changes@main
   with:
     workflows: 'CI'
 ```
 
 To test another repo, with all arguments
-```
+```yml
 - name: Test another repo
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
@@ -47,7 +47,7 @@ To test another repo, with all arguments
 ```
 
 To use a PAT token to access another (potentially private) repo:
-```
+```yml
 - name: Test elite repo with PAT Token
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
@@ -57,7 +57,7 @@ To use a PAT token to access another (potentially private) repo:
 ```
 
 Use the built in Actions GitHub Token to retrieve the metrics
-```
+```yml
 - name: Test this repo with GitHub Token
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
@@ -66,7 +66,7 @@ Use the built in Actions GitHub Token to retrieve the metrics
 ```
 
 Gather the metric from another repository using GitHub App authentication method:
-```
+```yml
 - name: Test another repo with GitHub App
   uses: DeveloperMetrics/lead-time-for-changes@main
   with:
@@ -75,6 +75,17 @@ Gather the metric from another repository using GitHub App authentication method
     app-id: "${{ secrets.APPID }}"
     app-install-id: "${{ secrets.APPINSTALLID }}"
     app-private-key: "${{ secrets.APPPRIVATEKEY }}"
+```
+
+Use the markdown file output for some other action downstream:
+```yml
+- name: Generate lead time for changes markdown file
+  uses: DeveloperMetrics/lead-time-for-changes@main
+  id: lead-time
+  with:
+    workflows: 'CI'
+    actions-token: "${{ secrets.GITHUB_TOKEN }}"
+- run: cat ${{ steps.lead-time.outputs.markdown-file }})
 ```
 
 # Setup
