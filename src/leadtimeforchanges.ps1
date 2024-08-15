@@ -9,7 +9,8 @@ Param(
     [string] $actionsToken = "",
     [string] $appId = "",
     [string] $appInstallationId = "",
-    [string] $appPrivateKey = ""
+    [string] $appPrivateKey = "",
+    [string] $apiUrl = "https://api.github.com"
 )
 
 #The main function
@@ -22,7 +23,8 @@ function Main ([string] $ownerRepo,
     [string] $actionsToken = "",
     [string] $appId = "",
     [string] $appInstallationId = "",
-    [string] $appPrivateKey = "")
+    [string] $appPrivateKey = "",
+    [string] $apiUrl = "https://api.github.com")
 {
 
     #==========================================
@@ -48,7 +50,7 @@ function Main ([string] $ownerRepo,
 
     #Get pull requests from the repo 
     #https://developer.GitHub.com/v3/pulls/#list-pull-requests
-    $uri = "https://api.github.com/repos/$owner/$repo/pulls?state=all&head=$branch&per_page=100&state=closed";
+    $uri = "$apiUrl/repos/$owner/$repo/pulls?state=all&head=$branch&per_page=100&state=closed";
     if (!$authHeader)
     {
         #No authentication
@@ -72,7 +74,7 @@ function Main ([string] $ownerRepo,
         if ($mergedAt -ne $null -and $pr.merged_at -gt (Get-Date).AddDays(-$numberOfDays))
         {
             $prCounter++
-            $url2 = "https://api.github.com/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
+            $url2 = "$apiUrl/repos/$owner/$repo/pulls/$($pr.number)/commits?per_page=100";
             if (!$authHeader)
             {
                 #No authentication
@@ -109,7 +111,7 @@ function Main ([string] $ownerRepo,
 
     #==========================================
     #Get workflow definitions from github
-    $uri3 = "https://api.github.com/repos/$owner/$repo/actions/workflows"
+    $uri3 = "$apiUrl/repos/$owner/$repo/actions/workflows"
     if (!$authHeader) #No authentication
     {
         $workflowsResponse = Invoke-RestMethod -Uri $uri3 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
@@ -156,7 +158,7 @@ function Main ([string] $ownerRepo,
         $totalWorkflowHours = 0
         
         #Get workflow definitions from github
-        $uri4 = "https://api.github.com/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100&status=completed"
+        $uri4 = "$apiUrl/repos/$owner/$repo/actions/workflows/$workflowId/runs?per_page=100&status=completed"
         if (!$authHeader)
         {
             $workflowRunsResponse = Invoke-RestMethod -Uri $uri4 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
@@ -208,7 +210,7 @@ function Main ([string] $ownerRepo,
 
     #==========================================
     #Show current rate limit
-    $uri5 = "https://api.github.com/rate_limit"
+    $uri5 = "$apiUrl/rate_limit"
     if (!$authHeader)
     {
         $rateLimitResponse = Invoke-RestMethod -Uri $uri5 -ContentType application/json -Method Get -SkipHttpErrorCheck -StatusCodeVariable "HTTPStatus"
@@ -341,7 +343,7 @@ function ConvertTo-Base64UrlString(
     }
 }
 
-function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $appPrivateKey)
+function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $appPrivateKey, [string] $apiUrl )
 {
     # Write-Host "appId: $appId"
     $now = (Get-Date).ToUniversalTime()
@@ -376,7 +378,7 @@ function Get-JwtToken([string] $appId, [string] $appInstallationId, [string] $ap
     catch { throw New-Object System.Exception -ArgumentList ("GitHub App authenication error: Signing with SHA256 and Pkcs1 padding failed using private key $($rsa): $_", $_.Exception) }
     $jwt = $jwt + '.' + $sig
     # send headers
-    $uri = "https://api.github.com/app/installations/$appInstallationId/access_tokens"
+    $uri = "$apiUrl/app/installations/$appInstallationId/access_tokens"
     $jwtHeader = @{
         Accept = "application/vnd.github+json"
         Authorization = "Bearer $jwt"
@@ -410,4 +412,4 @@ function GetFormattedMarkdownForNoResult([string] $workflows, [string] $numberOf
     return $markdown
 }
 
-main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod  -patToken $patToken -actionsToken $actionsToken -appId $appId -appInstallationId $appInstallationId -appPrivateKey $appPrivateKey
+main -ownerRepo $ownerRepo -workflows $workflows -branch $branch -numberOfDays $numberOfDays -commitCountingMethod $commitCountingMethod  -patToken $patToken -actionsToken $actionsToken -appId $appId -appInstallationId $appInstallationId -appPrivateKey $appPrivateKey -apiUrl $apiUrl

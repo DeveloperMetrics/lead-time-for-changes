@@ -1,6 +1,6 @@
 name: 'DORA lead time for changes'
 description: 'A GitHub Action to roughly calculate DORA lead time for changes'
-author: developermetrics.org 
+author: developermetrics.org
 branding:
   icon: activity
   color: gray-dark
@@ -39,6 +39,9 @@ inputs:
   app-private-key:
     description: 'private key which has been generated for the installed instance of the GitHub app'
     default: ""
+  api-url:
+    description: 'the URL of the GitHub API'
+    default: ${{ github.api_url }}
 outputs:
   markdown-file:
     description: "The markdown that will be posted to the job summary, so that the markdown can saved and used other places (e.g.: README.md)"
@@ -50,7 +53,7 @@ runs:
       id: lead-time
       shell: pwsh
       run: |
-         $result = ${{ github.action_path }}/src/leadtimeforchanges.ps1 -ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} -commitCountingMethod ${{ inputs.commit-counting-method }} -patToken "${{ inputs.pat-token }}" -actionsToken "${{ inputs.actions-token }}" -appId "${{ inputs.app-id }}" -appInstallationId "${{ inputs.app-install-id }}" -appPrivateKey "${{ inputs.app-private-key }}"             
+         $result = ${{ github.action_path }}/src/leadtimeforchanges.ps1 -ownerRepo "${{ inputs.owner-repo }}" -workflows "${{ inputs.workflows }}" -branch "${{ inputs.default-branch }}" -numberOfDays ${{ inputs.number-of-days }} -commitCountingMethod ${{ inputs.commit-counting-method }} -patToken "${{ inputs.pat-token }}" -actionsToken "${{ inputs.actions-token }}" -appId "${{ inputs.app-id }}" -appInstallationId "${{ inputs.app-install-id }}" -appPrivateKey "${{ inputs.app-private-key }}" -apiUrl "${{ inputs.api-url }}"
          $filePath="dora-lead-time-markdown.md"
          Set-Content -Path $filePath -Value $result
          "markdown-file=$filePath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
